@@ -5,6 +5,7 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <functional>
 #include "../vdm/vdm.hpp"
 
 namespace vdm
@@ -19,10 +20,21 @@ namespace vdm
 	inline std::uint32_t nt_rva;
 	inline std::uint8_t* dxgkrnl_buffer;
 
+	using read_phys_t = std::function<decltype(vdm::read_phys)>;
+	using write_phys_t = std::function<decltype(vdm::write_phys)>;
+
 	class vdm_ctx
 	{
 	public:
-		vdm_ctx();
+		vdm_ctx
+		(	
+			std::function<decltype(vdm::read_phys)>& read_func,
+			std::function<decltype(vdm::write_phys)>& write_func
+		);
+
+		void set_read(std::function<decltype(vdm::read_phys)>& read_func);
+		void set_write(std::function<decltype(vdm::write_phys)>& write_func);
+
 		template <class T, class ... Ts>
 		__forceinline std::invoke_result_t<T, Ts...> syscall(void* addr, Ts ... args) const
 		{
@@ -46,12 +58,12 @@ namespace vdm
 
 			std::uint8_t orig_bytes[sizeof jmp_code];
 			*reinterpret_cast<void**>(jmp_code + 6) = addr;
-			vdm::read_phys(vdm::syscall_address.load(), orig_bytes, sizeof orig_bytes);
+			read_phys(vdm::syscall_address.load(), orig_bytes, sizeof orig_bytes);
 
 			// execute hook...
-			vdm::write_phys(vdm::syscall_address.load(), jmp_code, sizeof jmp_code);
+			write_phys(vdm::syscall_address.load(), jmp_code, sizeof jmp_code);
 			auto result = reinterpret_cast<T>(proc)(args ...);
-			vdm::write_phys(vdm::syscall_address.load(), orig_bytes, sizeof orig_bytes);
+			write_phys(vdm::syscall_address.load(), orig_bytes, sizeof orig_bytes);
 
 			syscall_mutex.unlock();
 			return result;
@@ -109,5 +121,8 @@ namespace vdm
 	private:
 		void locate_syscall(std::uintptr_t begin, std::uintptr_t end) const;
 		bool valid_syscall(void* syscall_addr) const;
+
+		std::function<decltype(vdm::read_phys)> read_phys;
+		std::function<decltype(vdm::write_phys)> write_phys;
 	};
 }

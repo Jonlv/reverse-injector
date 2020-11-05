@@ -2,7 +2,14 @@
 
 namespace vdm
 {
-	vdm_ctx::vdm_ctx()
+	vdm_ctx::vdm_ctx
+	(
+		std::function<decltype(vdm::read_phys)>& read_func, 
+		std::function<decltype(vdm::write_phys)>& write_func
+	)
+		:
+		read_phys(read_func),
+		write_phys(write_func)
 	{
 		// already found the syscall's physical page...
 		if (vdm::syscall_address.load())
@@ -35,6 +42,16 @@ namespace vdm
 			search_thread.join();
 	}
 
+	void vdm_ctx::set_read(std::function<decltype(vdm::read_phys)>& read_func)
+	{
+		this->read_phys = read_func;
+	}
+
+	void vdm_ctx::set_write(std::function<decltype(vdm::write_phys)>& write_func)
+	{
+		this->write_phys = write_func;
+	}
+
 	void vdm_ctx::locate_syscall(std::uintptr_t address, std::uintptr_t length) const
 	{
 		const auto page_data = 
@@ -50,7 +67,7 @@ namespace vdm
 			if (vdm::syscall_address.load())
 				break;
 
-			if (!vdm::read_phys(reinterpret_cast<void*>(address + page), page_data, PAGE_4KB))
+			if (!read_phys(reinterpret_cast<void*>(address + page), page_data, PAGE_4KB))
 				continue;
 
 			// check the first 32 bytes of the syscall, if its the same, test that its the correct
@@ -82,11 +99,11 @@ namespace vdm
 		std::uint8_t orig_bytes[sizeof shellcode];
 
 		// save original bytes and install shellcode...
-		vdm::read_phys(syscall_addr, orig_bytes, sizeof orig_bytes);
-		vdm::write_phys(syscall_addr, shellcode, sizeof shellcode);
+		read_phys(syscall_addr, orig_bytes, sizeof orig_bytes);
+		write_phys(syscall_addr, shellcode, sizeof shellcode);
 
 		auto result = reinterpret_cast<NTSTATUS(__fastcall*)(void)>(proc)();
-		vdm::write_phys(syscall_addr, orig_bytes, sizeof orig_bytes);
+		write_phys(syscall_addr, orig_bytes, sizeof orig_bytes);
 		syscall_mutex.unlock();
 		return result == STATUS_SUCCESS;
 	}

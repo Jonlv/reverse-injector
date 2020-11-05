@@ -5,8 +5,8 @@ namespace nasa
 	mem_ctx::mem_ctx(vdm::vdm_ctx& v_ctx, std::uint32_t pid)
 		:
 		v_ctx(&v_ctx),
-		dirbase(get_dirbase(v_ctx, pid)),
-		pid(pid)
+		pid(pid),
+		dirbase(get_dirbase(v_ctx, pid))
 	{
 		// find an empty pml4e inside of current processes pml4...
 		const auto current_pml4 =
@@ -67,7 +67,6 @@ namespace nasa
 				));
 
 		PAGE_IN(this->new_pt.second, PAGE_4KB);
-
 		// get paging table entries for pt
 		pt_entries new_pt_entries;
 		hyperspace_entries(new_pt_entries, this->new_pt.second);
@@ -373,10 +372,10 @@ namespace nasa
 		}
 	}
 
-	void mem_ctx::read_phys(void* buffer, void* addr, std::size_t size)
+	bool mem_ctx::read_phys(void* buffer, void* addr, std::size_t size)
 	{
 		if (!buffer || !addr || !size)
-			return;
+			return false;
 
 		const auto temp_page = set_page(addr);
 		__try
@@ -384,13 +383,16 @@ namespace nasa
 			memcpy(buffer, temp_page, size);
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER)
-		{}
+		{
+			return false;
+		}
+		return true;
 	}
 
-	void mem_ctx::write_phys(void* buffer, void* addr, std::size_t size)
+	bool mem_ctx::write_phys(void* buffer, void* addr, std::size_t size)
 	{
 		if (!buffer || !addr || !size)
-			return;
+			return false;
 
 		const auto temp_page = set_page(addr);
 		__try
@@ -398,7 +400,10 @@ namespace nasa
 			memcpy(temp_page, buffer, size);
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER)
-		{}
+		{
+			return false;
+		}
+		return true;
 	}
 
 	void* mem_ctx::virt_to_phys(pt_entries& entries, void* addr)

@@ -7,7 +7,7 @@ namespace nasa
 	class mem_ctx
 	{
 	public:
-		explicit mem_ctx(vdm::vdm_ctx& v_ctx, std::uint32_t pid = GetCurrentProcessId());
+		mem_ctx(vdm::vdm_ctx& v_ctx, std::uint32_t pid = GetCurrentProcessId());
 		~mem_ctx();
 
 		std::pair<ppte, pte> get_pte(void* addr, bool use_hyperspace = false);
@@ -25,8 +25,8 @@ namespace nasa
 		void* get_dirbase() const;
 		static void* get_dirbase(vdm::vdm_ctx& v_ctx, std::uint32_t pid);
 
-		void read_phys(void* buffer, void* addr, std::size_t size);
-		void write_phys(void* buffer, void* addr, std::size_t size);
+		bool read_phys(void* buffer, void* addr, std::size_t size);
+		bool write_phys(void* buffer, void* addr, std::size_t size);
 
 		template <class T>
 		T read_phys(void* addr)
