@@ -16,7 +16,9 @@ namespace nasa
 		
 		// zero inserted pml4e's...
 		for (const auto [real_idx, inserted_idx] : this->pml4_index_map)
-			pml4[inserted_idx] = {};
+			pml4[inserted_idx] = pml4e{ NULL };
+
+		while (!SwitchToThread());
 	}
 
 	bool injector_ctx::init() const

@@ -76,9 +76,8 @@ namespace nasa
 
 	mem_ctx::~mem_ctx()
 	{
-		// remove pml4e
-		pml4e null_value{ NULL };
-		set_pml4e(reinterpret_cast<::ppml4e>(get_dirbase()) + this->pml4e_index, null_value, true);
+		set_pml4e(reinterpret_cast<::ppml4e>(get_dirbase()) + this->pml4e_index, pml4e{NULL});
+		while (!SwitchToThread());
 	}
 
 	void* mem_ctx::set_page(void* addr)

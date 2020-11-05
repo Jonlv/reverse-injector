@@ -16,6 +16,13 @@ int __cdecl main(int argc, char** argv)
 	nasa::mem_ctx notepad_proc(vdm, util::get_pid("notepad.exe"));
 	nasa::injector_ctx injector(&my_proc, &notepad_proc);
 
+	// driver no longer needs to be loaded since paging tables are all setup :^)
+	if (!vdm::unload_drv(drv_handle, drv_key))
+	{
+		std::printf("[!] unable to unload vulnerable driver...\n");
+		return -1;
+	}
+
 	if (!injector.init())
 	{
 		std::printf("[!] failed to init injector_ctx...\n");
@@ -30,12 +37,6 @@ int __cdecl main(int argc, char** argv)
 	std::printf("[+] ntdll base address -> 0x%p\n", ntdll_base);
 	std::printf("[+] ntdll reverse inject address -> 0x%p\n", ntdll_inject_addr);
 	std::printf("[+] ntdll MZ -> 0x%x\n", *(short*)ntdll_inject_addr);
-
-	if (!vdm::unload_drv(drv_handle, drv_key))
-	{
-		std::printf("[!] unable to unload vulnerable driver...\n");
-		return -1;
-	}
 
 	std::printf("[+] press any key to close...\n");
 	std::getchar();
