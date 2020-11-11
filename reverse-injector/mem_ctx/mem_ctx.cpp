@@ -75,30 +75,29 @@ namespace nasa
 
 	mem_ctx::~mem_ctx()
 	{
-		set_pml4e(reinterpret_cast<::ppml4e>(get_dirbase()) + this->pml4e_index, pml4e{NULL});
-		while (!SwitchToThread());
+		const auto pml4 =
+			reinterpret_cast<ppml4e>(
+				set_page(dirbase))[pml4e_index] = pml4e{ NULL };
 	}
 
 	void* mem_ctx::set_page(void* addr)
 	{
 		// table entry change.
+		++pte_index;
+		if (pte_index >= 511)
 		{
-			++pte_index;
-			if (pte_index >= 511)
-			{
-				++pde_index;
-				pte_index = 0;
-			}
-
-			if (pde_index >= 511)
-			{
-				++pdpte_index;
-				pde_index = 0;
-			}
-
-			if (pdpte_index >= 511)
-				pdpte_index = 0;
+			++pde_index;
+			pte_index = 0;
 		}
+
+		if (pde_index >= 511)
+		{
+			++pdpte_index;
+			pde_index = 0;
+		}
+
+		if (pdpte_index >= 511)
+			pdpte_index = 0;
 
 		pdpte new_pdpte = { NULL };
 		new_pdpte.present = true;

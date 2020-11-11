@@ -4,6 +4,12 @@
 
 int __cdecl main(int argc, char** argv)
 {
+	if (argc < 3 || strcmp(argv[1], "--pid"))
+	{
+		std::printf("[!] please provide a process id... (--pid X)\n");
+		return false;
+	}
+
 	const auto [drv_handle, drv_key] = vdm::load_drv();
 	if (!drv_handle || drv_key.empty())
 	{
@@ -49,7 +55,7 @@ int __cdecl main(int argc, char** argv)
 	vdm.set_read(_read_phys);
 	vdm.set_write(_write_phys);
 
-	nasa::mem_ctx notepad_proc(vdm, util::get_pid("notepad.exe"));
+	nasa::mem_ctx notepad_proc(vdm, std::atoi(argv[2]));
 	nasa::injector_ctx injector(&my_proc, &notepad_proc);
 
 	if (!injector.init())
