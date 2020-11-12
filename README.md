@@ -1,7 +1,7 @@
 # Reverse Injector
 
-Inject a process into your context. You can call functions that do not reference absolute virtual addresses. Reverse injector copies a target processes pml4e's into another specified 
-processes pml4. Current the project copies the targets pml4e's into the current process (reverse-injector.exe), but you can configure the project to inject a process into any process
+Inject a process into your context. You can call functions that do not reference absolute virtual addresses. Reverse injector copies a target processes PML4E's into another specified 
+processes PML4. Currently the project copies the target processes PML4E's into the current process PML4 (reverse-injector.exe), but you can configure the project to inject a process into any process
 you want.
 
 # Info
