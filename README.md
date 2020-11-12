@@ -21,3 +21,10 @@ mapped into the process that was reverse injected into. This is because both pro
 
 If another PML4E is inserted into the process that was reverse injected I have a try catch around `nasa::injector_ctx::translate` that will copy the new PML4E into the target process
 and thus keep the PML4's synced.
+
+# Calling Functions?
+
+You can call functions that do not reference absolute addresses. This last sentence is pretty ambigous but in short, when the process is injected into another the space between the PML4E's
+is not the same (nor is the PML4E index the same).
+
+My suggestion is you call only small functions if you want to call functions. 
