@@ -16,7 +16,7 @@ PTM manages its own set of paging tables from usermode and does not need a vulne
 
 # Heap Memory?
 
-All memory in the process being reverse injected is mapped into the target process, this includes heap memory. When memory is allocated in PDPT's, PD's, and PT's the memory is also
+All memory in the process being reverse injected is mapped into the target process, this includes heap memory (mapping is NOT allocating its pointing at the same physical memory! so if something changes in the game, it changes in your context). When memory is allocated in PDPT's, PD's, and PT's the memory is also
 mapped into the process that was reverse injected into. This is because both processes PML4E's point to the same PDPT's. 
 
 If another PML4E is inserted into the process that was reverse injected I have a try catch around `nasa::injector_ctx::translate` that will copy the new PML4E into the target process
